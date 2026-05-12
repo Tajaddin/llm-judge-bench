@@ -1,0 +1,71 @@
+{
+  "position_bias": [
+    {
+      "judge": "first-bias",
+      "n": 30,
+      "flip_count": 30,
+      "flip_rate": 1.0,
+      "first_lean_count": 30,
+      "first_lean_rate": 1.0
+    },
+    {
+      "judge": "length",
+      "n": 30,
+      "flip_count": 5,
+      "flip_rate": 0.1667,
+      "first_lean_count": 5,
+      "first_lean_rate": 0.1667
+    },
+    {
+      "judge": "content-keyword",
+      "n": 30,
+      "flip_count": 20,
+      "flip_rate": 0.6667,
+      "first_lean_count": 20,
+      "first_lean_rate": 0.6667
+    }
+  ],
+  "length_bias": [
+    {
+      "judge": "first-bias",
+      "n": 30,
+      "flip_count": 0,
+      "flip_rate": 0.0
+    },
+    {
+      "judge": "length",
+      "n": 30,
+      "flip_count": 25,
+      "flip_rate": 0.8333
+    },
+    {
+      "judge": "content-keyword",
+      "n": 30,
+      "flip_count": 0,
+      "flip_rate": 0.0
+    }
+  ],
+  "agreements": [
+    {
+      "judge_a": "first-bias",
+      "judge_b": "length",
+      "n": 30,
+      "agree_rate": 0.4667,
+      "cohens_kappa": 0.0
+    },
+    {
+      "judge_a": "first-bias",
+      "judge_b": "content-keyword",
+      "n": 30,
+      "agree_rate": 0.8333,
+      "cohens_kappa": 0.0
+    },
+    {
+      "judge_a": "length",
+      "judge_b": "content-keyword",
+      "n": 30,
+      "agree_rate": 0.6333,
+      "cohens_kappa": 0.2979
+    }
+  ]
+}
