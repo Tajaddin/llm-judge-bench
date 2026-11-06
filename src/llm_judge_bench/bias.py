@@ -40,11 +40,11 @@ class PositionBiasResult:
 class PositionBiasReport:
     judge_model: str
     n: int
-    n_unparseable: int
     flip_count: int
     flip_rate: float
     first_lean_count: int   # times judge picked the *first*-shown candidate in BOTH runs
     first_lean_rate: float
+    n_unparseable: int = 0
     rows: list[PositionBiasResult] = field(default_factory=list)
 
 
@@ -110,9 +110,9 @@ class LengthBiasResult:
 class LengthBiasReport:
     judge_model: str
     n: int
-    n_unparseable: int
     flip_count: int
     flip_rate: float
+    n_unparseable: int = 0
     rows: list[LengthBiasResult] = field(default_factory=list)
 
 

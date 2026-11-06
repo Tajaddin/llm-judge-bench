@@ -2,7 +2,7 @@
 
 > LLM-as-judge framework with **calibrated rubrics** and **three named bias diagnostics**: position bias (verdict flips on candidate swap), length bias (verdict flips when the loser is padded), and inter-judge agreement (Cohen's κ). Designed so an interview-ready demo runs in <1 second with mocked judges and any number of real LLMs works the same way.
 
-[![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE) [![Tests](https://img.shields.io/badge/tests-12%20passing-brightgreen)](#tests) [![Python](https://img.shields.io/badge/python-3.10%2B-blue)]()
+[![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE) [![Tests](https://img.shields.io/badge/tests-13%20passing-brightgreen)](#tests) [![Python](https://img.shields.io/badge/python-3.10%2B-blue)]()
 
 ## Hero demo
 
@@ -101,7 +101,7 @@ pytest -q
 ```
 
 ```
-12 passed
+13 passed
 ```
 
 Coverage:
@@ -124,7 +124,7 @@ Coverage:
 │   ├── judge.py        # Judge wrapper + rubric + parse_verdict
 │   ├── bias.py         # position / length / agreement measurement
 │   └── dataset.py      # built-in 30-pair eval set
-├── tests/              # 12 pytest cases
+├── tests/              # 13 pytest cases
 └── bench/
     ├── demo_mock.py        # mock-based demo (deterministic, <1s)
     ├── demo_results.json   # output of demo_mock.py

@@ -11,7 +11,14 @@ from llm_judge_bench import (
     MockJudgeBackend,
     Verdict,
 )
-from llm_judge_bench.bias import cohens_kappa, measure_agreement, measure_length_bias, measure_position_bias
+from llm_judge_bench.bias import (
+    LengthBiasReport,
+    PositionBiasReport,
+    cohens_kappa,
+    measure_agreement,
+    measure_length_bias,
+    measure_position_bias,
+)
 from llm_judge_bench.dataset import builtin_pairs
 
 
@@ -126,6 +133,13 @@ def test_length_bias_excludes_unparseable_padded_verdicts() -> None:
     assert report.n == 2
     assert report.n_unparseable == 2
     assert report.flip_rate == 1.0
+
+
+def test_bias_reports_keep_positional_field_order() -> None:
+    position = PositionBiasReport("m", 4, 2, 0.5, 1, 0.25)
+    assert (position.flip_count, position.first_lean_rate, position.n_unparseable) == (2, 0.25, 0)
+    length = LengthBiasReport("m", 4, 1, 0.25)
+    assert (length.flip_count, length.flip_rate, length.n_unparseable) == (1, 0.25, 0)
 
 
 def test_bias_analyzer_reports_unparseable_counts() -> None:
