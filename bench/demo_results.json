@@ -3,6 +3,7 @@
     {
       "judge": "first-bias",
       "n": 30,
+      "n_unparseable": 0,
       "flip_count": 30,
       "flip_rate": 1.0,
       "first_lean_count": 30,
@@ -11,6 +12,7 @@
     {
       "judge": "length",
       "n": 30,
+      "n_unparseable": 0,
       "flip_count": 5,
       "flip_rate": 0.1667,
       "first_lean_count": 5,
@@ -19,6 +21,7 @@
     {
       "judge": "content-keyword",
       "n": 30,
+      "n_unparseable": 0,
       "flip_count": 20,
       "flip_rate": 0.6667,
       "first_lean_count": 20,
@@ -29,18 +32,21 @@
     {
       "judge": "first-bias",
       "n": 30,
+      "n_unparseable": 0,
       "flip_count": 0,
       "flip_rate": 0.0
     },
     {
       "judge": "length",
       "n": 30,
+      "n_unparseable": 0,
       "flip_count": 25,
       "flip_rate": 0.8333
     },
     {
       "judge": "content-keyword",
       "n": 30,
+      "n_unparseable": 0,
       "flip_count": 0,
       "flip_rate": 0.0
     }

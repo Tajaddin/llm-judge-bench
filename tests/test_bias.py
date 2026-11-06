@@ -82,6 +82,59 @@ def test_length_judge_caught_by_length_bias() -> None:
     assert report.flip_rate == 1.0  # padding the loser to match length flips the verdict every time
 
 
+def _first_unless_garbled_judge() -> Judge:
+    """Picks the first-shown candidate, but answers without a VERDICT line when it is 'garbled'."""
+
+    def handler(prompt: str, system: str | None) -> str:
+        first = prompt.split("Candidate A:\n", 1)[1].split("\n", 1)[0]
+        return "I cannot decide." if first == "garbled" else "VERDICT: A\nfirst."
+
+    return Judge(backend=MockJudgeBackend(model="flaky", handler=handler))
+
+
+def test_position_bias_excludes_unparseable_verdicts_from_rates() -> None:
+    pairs = [
+        JudgePair(item_id="1", question="?", candidate_a="x", candidate_b="y"),
+        JudgePair(item_id="2", question="?", candidate_a="x", candidate_b="garbled"),
+    ]
+    report = measure_position_bias(_first_unless_garbled_judge(), pairs)
+    # Pair 2's swapped run has no verdict, so it can't be scored either way.
+    assert report.n == 1
+    assert report.n_unparseable == 1
+    assert report.flip_rate == 1.0
+    assert report.first_lean_rate == 1.0
+    assert len(report.rows) == 2
+
+
+def test_length_bias_excludes_unparseable_padded_verdicts() -> None:
+    length_judge = _length_judge()
+
+    def handler(prompt: str, system: str | None) -> str:
+        if "mute" in prompt or ("flaky" in prompt and "(additional context omitted)" in prompt):
+            return "no verdict here"
+        return length_judge.backend.complete(prompt, system)
+
+    judge = Judge(backend=MockJudgeBackend(model="flaky", handler=handler))
+    pairs = [
+        JudgePair(item_id="1", question="?", candidate_a="long enough answer", candidate_b="short"),
+        JudgePair(item_id="2", question="?", candidate_a="flaky long answer", candidate_b="short"),
+        JudgePair(item_id="3", question="?", candidate_a="also long answer", candidate_b="short"),
+        JudgePair(item_id="4", question="?", candidate_a="mute long answer", candidate_b="short"),
+    ]
+    report = measure_length_bias(judge, pairs)
+    # Both scorable pairs flip toward the padded loser; pairs 2 and 4 can't be scored.
+    assert report.n == 2
+    assert report.n_unparseable == 2
+    assert report.flip_rate == 1.0
+
+
+def test_bias_analyzer_reports_unparseable_counts() -> None:
+    pairs = [JudgePair(item_id="1", question="?", candidate_a="x", candidate_b="garbled")]
+    report = BiasAnalyzer(pairs).run([_first_unless_garbled_judge()])
+    assert report["position_bias"][0]["n_unparseable"] == 1
+    assert report["length_bias"][0]["n_unparseable"] == 0
+
+
 def test_cohens_kappa_perfect_agreement_is_one() -> None:
     labels = [Verdict.A, Verdict.B, Verdict.A, Verdict.TIE]
     k, n, na = cohens_kappa(labels, labels)
