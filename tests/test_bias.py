@@ -133,6 +133,10 @@ def test_length_bias_excludes_unparseable_padded_verdicts() -> None:
     assert report.n == 2
     assert report.n_unparseable == 2
     assert report.flip_rate == 1.0
+    # Every unscorable pair keeps a row, whichever verdict failed.
+    assert [r.item_id for r in report.rows] == ["1", "2", "3", "4"]
+    assert report.rows[3].verdict_clean is None
+    assert not report.rows[3].flipped_toward_padded
 
 
 def test_bias_reports_keep_positional_field_order() -> None:

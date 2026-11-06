@@ -130,7 +130,8 @@ def measure_length_bias(judge: Judge, pairs: Iterable[JudgePair]) -> LengthBiasR
 
     A length-biased judge will flip toward the now-longer (originally loser)
     candidate. Pairs where the clean verdict was TIE are skipped, since there
-    is no loser to pad.
+    is no loser to pad; every other pair gets a row, including those whose
+    clean verdict didn't parse (``verdict_clean=None``).
     """
     rows: list[LengthBiasResult] = []
     flips = 0
@@ -140,6 +141,14 @@ def measure_length_bias(judge: Judge, pairs: Iterable[JudgePair]) -> LengthBiasR
         v_clean, _, _ = judge.judge(pair, swap=False)
         if v_clean is None:
             n_unparseable += 1
+            rows.append(
+                LengthBiasResult(
+                    item_id=pair.item_id,
+                    verdict_clean=None,
+                    verdict_padded=None,
+                    flipped_toward_padded=False,
+                )
+            )
             continue
         if v_clean == Verdict.TIE:
             continue
