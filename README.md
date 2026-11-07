@@ -2,7 +2,7 @@
 
 > LLM-as-judge framework with **calibrated rubrics** and **three named bias diagnostics**: position bias (verdict flips on candidate swap), length bias (verdict flips when the loser is padded), and inter-judge agreement (Cohen's κ). Designed so an interview-ready demo runs in <1 second with mocked judges and any number of real LLMs works the same way.
 
-[![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE) [![Tests](https://img.shields.io/badge/tests-9%20passing-brightgreen)](#tests) [![Python](https://img.shields.io/badge/python-3.10%2B-blue)]()
+[![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE) [![Tests](https://img.shields.io/badge/tests-13%20passing-brightgreen)](#tests) [![Python](https://img.shields.io/badge/python-3.10%2B-blue)]()
 
 ## Hero demo
 
@@ -33,6 +33,8 @@ Every team that ships LLM features uses LLM-as-judge for some eval. The well-kno
 1. **Position bias** — for each pair, run the judge twice with A and B swapped. Any pair whose verdict changed counts as a flip. A truly impartial judge produces zero flips.
 2. **Length bias** — for each pair where the judge picked a winner, pad the loser to match the winner's length and re-judge. Any flip toward the now-longer "loser" is a length-bias hit.
 3. **Inter-judge agreement** — Cohen's κ between any two judges over the same pair list. κ = 1 means identical decisions, κ ≤ 0 means worse than chance.
+
+A pair where any verdict fails to parse can't count as a flip or a non-flip, so the two bias rates leave it out of their denominator (`n`) and report it as `n_unparseable`.
 
 The framework decouples judges (pluggable LLM backends) from rubrics (configurable system prompts) so swapping in your own grading criteria is one constructor parameter.
 
@@ -99,7 +101,7 @@ pytest -q
 ```
 
 ```
-9 passed
+13 passed
 ```
 
 Coverage:
@@ -107,6 +109,7 @@ Coverage:
 * `_always_first_judge` triggers 100% position-bias flip rate (the framework caught it)
 * `_content_judge` (honest) produces 0% position-bias flip rate
 * `_length_judge` (picks the longer side) triggers 100% length-bias flip rate
+* Unparseable verdicts are counted in `n_unparseable` and left out of both flip rates
 * Cohen's κ math: perfect agreement = 1.0; total disagreement = ≤ 0; None labels dropped
 * End-to-end run on the 3-pair subset returns the expected report shape
 * The built-in dataset has 30 pairs, all with gold winners
@@ -121,7 +124,7 @@ Coverage:
 │   ├── judge.py        # Judge wrapper + rubric + parse_verdict
 │   ├── bias.py         # position / length / agreement measurement
 │   └── dataset.py      # built-in 30-pair eval set
-├── tests/              # 9 pytest cases
+├── tests/              # 13 pytest cases
 └── bench/
     ├── demo_mock.py        # mock-based demo (deterministic, <1s)
     ├── demo_results.json   # output of demo_mock.py

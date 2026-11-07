@@ -8,6 +8,10 @@
 * ``AgreementReport``     — Cohen's kappa between two judges' verdicts on
   the same pair list. κ = 1 means identical decisions; κ ≤ 0 means worse
   than chance.
+
+Both bias rates are over the pairs where every verdict parsed (``n``); pairs
+with an unparseable verdict can't flip or not flip, so they are counted in
+``n_unparseable`` instead.
 """
 
 from __future__ import annotations
@@ -40,6 +44,7 @@ class PositionBiasReport:
     flip_rate: float
     first_lean_count: int   # times judge picked the *first*-shown candidate in BOTH runs
     first_lean_rate: float
+    n_unparseable: int = 0
     rows: list[PositionBiasResult] = field(default_factory=list)
 
 
@@ -48,11 +53,15 @@ def measure_position_bias(judge: Judge, pairs: Iterable[JudgePair]) -> PositionB
     flips = 0
     first_leans = 0
     n = 0
+    n_unparseable = 0
     for pair in pairs:
-        n += 1
         v_normal, _, _ = judge.judge(pair, swap=False)
         v_swapped_raw, _, _ = judge.judge(pair, swap=True)
         v_swapped = Judge.unswap(v_swapped_raw)
+        if v_normal is None or v_swapped is None:
+            n_unparseable += 1
+        else:
+            n += 1
         flipped = (
             v_normal is not None and v_swapped is not None and v_normal != v_swapped
         )
@@ -75,6 +84,7 @@ def measure_position_bias(judge: Judge, pairs: Iterable[JudgePair]) -> PositionB
     return PositionBiasReport(
         judge_model=judge.model,
         n=n,
+        n_unparseable=n_unparseable,
         flip_count=flips,
         flip_rate=round(flips / max(n, 1), 4),
         first_lean_count=first_leans,
@@ -102,6 +112,7 @@ class LengthBiasReport:
     n: int
     flip_count: int
     flip_rate: float
+    n_unparseable: int = 0
     rows: list[LengthBiasResult] = field(default_factory=list)
 
 
@@ -118,16 +129,29 @@ def measure_length_bias(judge: Judge, pairs: Iterable[JudgePair]) -> LengthBiasR
     """Pad the *clean-verdict loser* to match the winner's length and re-judge.
 
     A length-biased judge will flip toward the now-longer (originally loser)
-    candidate. Pairs where the clean verdict was TIE or unparseable are skipped.
+    candidate. Pairs where the clean verdict was TIE are skipped, since there
+    is no loser to pad; every other pair gets a row, including those whose
+    clean verdict didn't parse (``verdict_clean=None``).
     """
     rows: list[LengthBiasResult] = []
     flips = 0
     n = 0
+    n_unparseable = 0
     for pair in pairs:
         v_clean, _, _ = judge.judge(pair, swap=False)
-        if v_clean not in (Verdict.A, Verdict.B):
+        if v_clean is None:
+            n_unparseable += 1
+            rows.append(
+                LengthBiasResult(
+                    item_id=pair.item_id,
+                    verdict_clean=None,
+                    verdict_padded=None,
+                    flipped_toward_padded=False,
+                )
+            )
             continue
-        n += 1
+        if v_clean == Verdict.TIE:
+            continue
         loser = "B" if v_clean == Verdict.A else "A"
         padded_pair = JudgePair(
             item_id=pair.item_id,
@@ -137,6 +161,10 @@ def measure_length_bias(judge: Judge, pairs: Iterable[JudgePair]) -> LengthBiasR
             gold_winner=pair.gold_winner,
         )
         v_padded, _, _ = judge.judge(padded_pair, swap=False)
+        if v_padded is None:
+            n_unparseable += 1
+        else:
+            n += 1
         flipped_toward_loser = (
             v_padded is not None and v_padded != v_clean
         )
@@ -153,6 +181,7 @@ def measure_length_bias(judge: Judge, pairs: Iterable[JudgePair]) -> LengthBiasR
     return LengthBiasReport(
         judge_model=judge.model,
         n=n,
+        n_unparseable=n_unparseable,
         flip_count=flips,
         flip_rate=round(flips / max(n, 1), 4),
         rows=rows,
@@ -242,6 +271,7 @@ class BiasAnalyzer:
                 {
                     "judge": r.judge_model,
                     "n": r.n,
+                    "n_unparseable": r.n_unparseable,
                     "flip_count": r.flip_count,
                     "flip_rate": r.flip_rate,
                     "first_lean_count": r.first_lean_count,
@@ -253,6 +283,7 @@ class BiasAnalyzer:
                 {
                     "judge": r.judge_model,
                     "n": r.n,
+                    "n_unparseable": r.n_unparseable,
                     "flip_count": r.flip_count,
                     "flip_rate": r.flip_rate,
                 }
